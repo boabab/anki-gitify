@@ -26,8 +26,8 @@ python3.13 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 
 - [src/anki_gitify/schema.py](src/anki_gitify/schema.py) — pydantic contract for the on-disk format. The shared types both halves consume. **Bump `SCHEMA_VERSION` here for any backward-incompatible format change.**
 - [src/anki_gitify/export/](src/anki_gitify/export/) — orchestrator + per-entity emitters (`exporter.py`, `decks.py`, `notetypes.py`, `cards.py`, `notes.py`, `filtered.py`, `media.py`).
-- [src/anki_gitify/importer/](src/anki_gitify/importer/) — `loader.py` parses gitified dirs, `genanki_build.py` produces `.apkg`, `apply_filtered.py` is a v2 stub.
-- [src/anki_gitify/cli.py](src/anki_gitify/cli.py) — typer entry point: `list-decks`, `export`, `import`, `verify`.
+- [src/anki_gitify/importer/](src/anki_gitify/importer/) — `loader.py` parses gitified dirs, `genanki_build.py` produces `.apkg`, `apply_filtered.py` writes filtered-deck metadata back into a live collection (v2).
+- [src/anki_gitify/cli.py](src/anki_gitify/cli.py) — typer entry point: `list-decks`, `export`, `import`, `verify`, `apply-filtered`.
 - [tests/conftest.py](tests/conftest.py) — synthetic fixtures (`fixture_basic`, `fixture_with_filtered`) built via `anki.collection.Collection`. Don't run tests against the user's real collection.
 
 ## Source-of-truth pointers

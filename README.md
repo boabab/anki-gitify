@@ -39,13 +39,19 @@ anki-gitify import /path/to/japanese-gitified japanese.apkg
 
 # Validate a gitified directory (no Anki needed)
 anki-gitify verify /path/to/japanese-gitified
+
+# Apply filtered-deck definitions to your live collection (v2)
+anki-gitify apply-filtered /path/to/japanese-gitified
+anki-gitify apply-filtered /path/to/japanese-gitified --dry-run
 ```
 
-The user's Anki must be **closed** when running `export` (the collection.anki2 file is locked otherwise).
+The user's Anki must be **closed** when running `export` or `apply-filtered` (the collection.anki2 file is locked otherwise).
 
 ## Filtered decks
 
-Filtered decks are preserved in `filtered_decks.yml` (canonical) + `FILTERED_DECKS.md` (auto-generated human view). The `.apkg` produced by `import` contains only normal decks — `genanki` has no filtered-deck primitive. After importing, recreate filtered decks via Tools → Create Filtered Deck (or wait for v2's `apply-filtered`).
+Filtered decks are preserved in `filtered_decks.yml` (canonical) + `FILTERED_DECKS.md` (auto-generated human view). The `.apkg` produced by `import` contains only normal decks — `genanki` has no filtered-deck primitive. After importing the `.apkg`, run `anki-gitify apply-filtered <gitified-dir>` to recreate the filtered decks in your collection (or recreate them by hand via Tools → Create Filtered Deck).
+
+`apply-filtered` is **idempotent**: filtered decks that already exist with the same name are skipped. If a *normal* deck already has that name it's reported as a conflict and skipped (the command exits 2) — resolve manually before re-running.
 
 ## Filtered deck order enum
 

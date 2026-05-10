@@ -227,26 +227,17 @@ The `.apkg` contains only normal decks. After File → Import:
 
 The `import` command prints a summary pointing at those files and listing the searches inline.
 
-### v2: `apply-filtered`
-Planned subcommand `anki-gitify apply-filtered <gitified-dir> [--profile NAME]` reads `filtered_decks.yml` and writes the filtered decks into a live collection programmatically:
+### v2: `apply-filtered` (shipped)
+Subcommand `anki-gitify apply-filtered <gitified-dir> [--profile NAME] [--collection PATH] [--dry-run]` reads `filtered_decks.yml` and writes the filtered decks into a live collection programmatically. Implementation lives in [`importer/apply_filtered.py`](../src/anki_gitify/importer/apply_filtered.py).
 
-```python
-data = yaml.safe_load((gitified_dir / "filtered_decks.yml").read_text())
-assert data["schema_version"] == 1
-col = Collection(collection_path)
-for entry in data["filtered_decks"]:
-    if col.decks.id_for_name(entry["name"]):
-        continue                                  # idempotent
-    did = col.decks.new_filtered(entry["name"])
-    deck = col.decks.get(did)
-    deck["terms"] = [[t["search"], t["limit"], t["order"]] for t in entry["terms"]]
-    deck["resched"] = entry["resched"]
-    deck["delays"] = entry.get("delays")
-    col.decks.save(deck)
-col.close()
-```
+Each entry is classified into one of three buckets:
+- **created** — name does not exist in the target collection; the filtered deck is created via `col.decks.new_filtered(name)`, then `terms`/`resched`/`delays` are written and the deck saved.
+- **skipped** — a filtered deck (`dyn=1`) with the same name already exists. Left untouched (idempotent).
+- **conflict** — a *normal* deck (`dyn=0`) with the same name exists. Anki's `new_filtered` would silently return the existing deck without converting it, so we refuse and report instead. The CLI exits with code 2 if any conflicts are reported.
 
-Only deck metadata is touched — never notes/cards/scheduling — so it's much lower-risk than a full live-collection write.
+`--dry-run` opens the collection read-only-ish (no `save` calls) and prints the same classification without writing.
+
+Only deck metadata is touched — never notes/cards/scheduling — so it's much lower-risk than a full live-collection write. The user must close Anki first (we open the collection through `open_collection` which surfaces a clear error if the file is locked).
 
 ### Cards currently inside filtered decks at re-import
 Anki's `.apkg` import dedups by `notes.guid`:
@@ -296,7 +287,7 @@ Build a fresh `Collection` in a temp dir, replay decks/notetypes/notes via the o
 - **Schema modifications invalidate scheduling**: editing fields/templates and re-importing triggers Anki's schema-mod path and resets card scheduling on existing cards. README warns about this.
 - **Per-card deck overrides** (rare): `cards.csv` round-trips losslessly on the export side. v1 import refuses without `--ignore-card-overrides`; with the flag, all cards of an affected note collapse into the note's primary `deck_path`. v2 lossless mode will respect overrides.
 - **Filtered deck as export root rejected in v1**: filtered decks have no notes of their own. `export` errors out and points at home decks instead.
-- **Filtered decks need one manual recreation step** post-import. v2's `apply-filtered` removes this step.
+- **Filtered decks need one manual recreation step** post-import — or run `anki-gitify apply-filtered` (v2, shipped) to write them directly into the live collection.
 - **Filtered-deck search referencing decks outside the export scope**: those cards are correctly excluded from the export. The filter string is preserved verbatim and may match nothing when re-imported into a collection that lacks the referenced decks — that's expected, not a bug.
 - **Schema versioning in `gitify.yml`** is critical from day 1 — a v2 that adds e.g. scheduling export must still consume v1 repos.
 

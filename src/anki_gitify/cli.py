@@ -11,6 +11,7 @@ import typer
 from .collection_io import open_collection
 from .export.exporter import export as run_export
 from .export.filtered import render_filtered_md
+from .importer.apply_filtered import apply_filtered as run_apply_filtered
 from .importer.importer import CardOverrideError, import_ as run_import
 from .importer.loader import load
 from .profile import resolve_profile_paths
@@ -134,6 +135,43 @@ def import_cmd(
         for fd in repo.filtered.filtered_decks:
             search = fd.terms[0].search if fd.terms else ""
             typer.echo(f"  - {fd.name:<40s}  {search}")
+
+
+@app.command("apply-filtered")
+def apply_filtered_cmd(
+    in_dir: Path = typer.Argument(..., help="Path to the gitified directory"),
+    profile: Optional[str] = typer.Option(None, "--profile", help="Anki profile name"),
+    collection: Optional[Path] = typer.Option(None, "--collection", help="Override path to collection.anki2"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would change without writing"),
+) -> None:
+    """Apply filtered_decks.yml to a live collection (writes filtered-deck metadata only).
+
+    Anki must be closed. Idempotent: filtered decks that already exist are skipped.
+    Names that collide with existing normal decks are reported as conflicts and not applied.
+    """
+    paths = _resolve_profile(profile, collection)
+    try:
+        report = run_apply_filtered(in_dir=in_dir, collection_path=paths.collection, dry_run=dry_run)
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from None
+
+    prefix = "[dry-run] would " if dry_run else ""
+    typer.echo(
+        f"{prefix}create={len(report.created)}  "
+        f"skipped={len(report.skipped)}  conflicts={len(report.conflicts)}"
+    )
+    for name in report.created:
+        typer.secho(f"  + {name}", fg=typer.colors.GREEN)
+    for name in report.skipped:
+        typer.echo(f"  = {name} (already a filtered deck)")
+    for name in report.conflicts:
+        typer.secho(
+            f"  ! {name} (a non-filtered deck with this name already exists — skipped)",
+            fg=typer.colors.YELLOW,
+        )
+    if report.conflicts:
+        raise typer.Exit(code=2)
 
 
 @app.command("verify")

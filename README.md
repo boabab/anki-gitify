@@ -15,13 +15,15 @@ Convert an Anki deck (with subdecks) into a git-versionable directory of plain t
 
 ## Install
 
-`anki` (PyPI) lags the newest Python. This project pins `>=3.11,<3.13`. Use [uv](https://github.com/astral-sh/uv) or pyenv:
+`anki` (PyPI) lags the newest Python. This project pins `>=3.11,<3.14`. Python 3.13 is recommended; 3.14 wheels for `anki` are not yet published.
 
 ```bash
-uv venv --python 3.12
+python3.13 -m venv .venv
 source .venv/bin/activate
-uv pip install -e ".[dev]"
+pip install -e ".[dev]"
 ```
+
+[uv](https://github.com/astral-sh/uv) works equivalently if you prefer it.
 
 ## Usage
 
@@ -70,5 +72,14 @@ Editing field/template structure (adding fields, changing template count, renami
 ## Development
 
 ```bash
-pytest
+.venv/bin/pytest
 ```
+
+## Project layout & design
+
+- [docs/DESIGN.md](docs/DESIGN.md) — the living spec: on-disk format, export/import algorithms, filtered-deck handling, round-trip determinism rules. Read this before contributing non-trivial changes.
+- [CLAUDE.md](CLAUDE.md) — agent-facing rules and conventions (Claude Code reads it automatically; useful as a contributor primer too).
+- `src/anki_gitify/schema.py` — pydantic models defining the on-disk format contract.
+- `tests/test_roundtrip.py` — executable spec of round-trip safety. If this goes red, docs and code disagree.
+
+When you change the on-disk format, bump `SCHEMA_VERSION` in `schema.py` and update `docs/DESIGN.md` in the same commit.

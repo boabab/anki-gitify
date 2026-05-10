@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "anki-gitify"
+version = "0.1.0"
+description = "Convert an Anki deck to a git-versionable directory of plain text, and back to .apkg."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+authors = [{ name = "Robin" }]
+dependencies = [
+    "anki>=24.0",
+    "genanki>=0.13.0",
+    "typer>=0.12.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+anki-gitify = "anki_gitify.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/anki_gitify"]

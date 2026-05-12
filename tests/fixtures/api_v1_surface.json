@@ -1,0 +1,64 @@
+{
+  "_comment": "Snapshot of the anki_gitify.api surface as of API_VERSION. test_api_surface.py reads this and asserts that every documented name and dataclass field is still present. ADDING new names or fields is fine and does not require updating this file. REMOVING anything (or renaming) is a breaking change: update this file AND bump API_VERSION's major component in api.py at the same commit.",
+  "api_version": [1, 0, 0],
+  "names": [
+    "API_VERSION",
+    "import_",
+    "ImportReport",
+    "CardOverrideError",
+    "apply_filtered",
+    "ApplyFilteredReport",
+    "verify",
+    "VerifyReport",
+    "load",
+    "LoadedRepo",
+    "list_profiles",
+    "resolve_profile_paths",
+    "default_anki_base",
+    "ProfilePaths"
+  ],
+  "dataclass_fields": {
+    "ImportReport": [
+      "out_apkg",
+      "notes",
+      "media_files",
+      "filtered_decks",
+      "card_overrides_ignored"
+    ],
+    "ApplyFilteredReport": [
+      "collection",
+      "created",
+      "skipped",
+      "conflicts",
+      "dry_run"
+    ],
+    "VerifyReport": [
+      "in_dir",
+      "ok",
+      "errors",
+      "notetypes",
+      "notes",
+      "media",
+      "filtered_decks"
+    ],
+    "LoadedRepo": [
+      "in_dir",
+      "gitify",
+      "notetypes",
+      "notes",
+      "card_overrides",
+      "deck_tree",
+      "filtered",
+      "media_files"
+    ],
+    "ProfilePaths": [
+      "base",
+      "profile",
+      "collection",
+      "media_dir"
+    ]
+  },
+  "exceptions": [
+    "CardOverrideError"
+  ]
+}

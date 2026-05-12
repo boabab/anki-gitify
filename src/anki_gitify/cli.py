@@ -10,10 +10,9 @@ import typer
 
 from .collection_io import open_collection
 from .export.exporter import export as run_export
-from .export.filtered import render_filtered_md
 from .importer.apply_filtered import apply_filtered as run_apply_filtered
 from .importer.importer import CardOverrideError, import_ as run_import
-from .importer.loader import load
+from .importer.verify import verify as run_verify
 from .profile import resolve_profile_paths
 
 
@@ -180,43 +179,21 @@ def verify_cmd(
 ) -> None:
     """Validate a gitified directory against the schema (no Anki needed)."""
     try:
-        repo = load(in_dir)
+        report = run_verify(in_dir)
     except (ValueError, FileNotFoundError) as exc:
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from None
 
-    errors: list[str] = []
-
-    # FILTERED_DECKS.md must agree with filtered_decks.yml regeneration
-    md_path = repo.in_dir / "FILTERED_DECKS.md"
-    fd_dicts = [fd.model_dump() for fd in repo.filtered.filtered_decks]
-    if fd_dicts:
-        expected = render_filtered_md(fd_dicts)
-        if not md_path.is_file():
-            errors.append(f"{md_path} is missing but filtered_decks.yml has entries")
-        else:
-            actual = md_path.read_text(encoding="utf-8")
-            if actual != expected:
-                errors.append(f"{md_path} does not match what would be regenerated from filtered_decks.yml")
-    else:
-        if md_path.is_file():
-            errors.append(f"{md_path} exists but filtered_decks.yml is empty")
-
-    # CSV header consistency: already enforced by loader, but the file load itself
-    # would have raised. Reaching here means notes parsed cleanly.
-
-    # Media references should exist for at least the most-referenced files.
-    # (loader returned `media_files` = all on-disk files; we don't fail on
-    #  unreferenced ones.)
-
-    if errors:
-        for e in errors:
+    if not report.ok:
+        for e in report.errors:
             typer.secho(f"FAIL: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
     typer.secho("OK", fg=typer.colors.GREEN)
-    typer.echo(f"  notetypes={len(repo.notetypes)}  notes={len(repo.notes)}  "
-               f"media={len(repo.media_files)}  filtered_decks={len(repo.filtered.filtered_decks)}")
+    typer.echo(
+        f"  notetypes={report.notetypes}  notes={report.notes}  "
+        f"media={report.media}  filtered_decks={report.filtered_decks}"
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover

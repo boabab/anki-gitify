@@ -18,11 +18,17 @@ def open_collection(path: Path) -> Iterator:
     try:
         col = Collection(str(path))
     except Exception as exc:
-        msg = str(exc)
-        if "locked" in msg.lower() or "database is locked" in msg.lower():
+        msg = str(exc).lower()
+        if (
+            "locked" in msg
+            or "database is locked" in msg
+            or "already open" in msg
+            or "currently syncing" in msg
+        ):
             raise RuntimeError(
                 f"Cannot open {path}: file is locked. "
-                "Close Anki before running anki-gitify."
+                "Close Anki (and wait for any in-progress sync to finish) "
+                "before running anki-gitify."
             ) from exc
         raise
     try:

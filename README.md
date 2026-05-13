@@ -47,6 +47,35 @@ anki-gitify apply-filtered /path/to/japanese-gitified --dry-run
 
 The user's Anki must be **closed** when running `export` or `apply-filtered` (the collection.anki2 file is locked otherwise).
 
+## Humanized git diffs
+
+The exported `notes/<notetype>.csv` is one wide row per note, so even small Anki edits (a renamed tag, a moved card, a tweaked field) show up in raw `git diff` as opaque single-line CSV rewrites. Wire up a textconv driver to render those files as one block per note instead:
+
+```bash
+cd /path/to/your-gitified-deck
+anki-gitify install-diff-driver
+```
+
+This is idempotent: it appends a marker block to `.gitattributes` and runs `git config diff.anki-gitify.textconv "<path>/anki-gitify textconv"` in the enclosing repo. After it, plain `git diff`, `git log -p`, `git show`, and IDE diff views render notes/cards CSVs like:
+
+```
+== note abc123 ==
+deck: Japanese::Vocab::Kanji
+tags:
+  - kanji
+  - n5
+
+-- field: Front --
+日
+
+-- field: Back --
+sun, day
+```
+
+So tagging a note shows up as one inserted `  - <tag>` line, moving a card is a single `deck:` edit, and a field rewrite is a normal multi-line text diff scoped to that field. Other files are untouched.
+
+`anki-gitify install-diff-driver --uninstall` removes both the `.gitattributes` block and the git-config entry. **Note**: GitHub's web PR view doesn't run textconv drivers; this only improves your local tooling.
+
 ## Filtered decks
 
 Filtered decks are preserved in `filtered_decks.yml` (canonical) + `FILTERED_DECKS.md` (auto-generated human view). The `.apkg` produced by `import` contains only normal decks — `genanki` has no filtered-deck primitive. After importing the `.apkg`, run `anki-gitify apply-filtered <gitified-dir>` to recreate the filtered decks in your collection (or recreate them by hand via Tools → Create Filtered Deck).

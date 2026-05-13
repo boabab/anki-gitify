@@ -3,15 +3,27 @@
 from __future__ import annotations
 
 import sys
+from contextlib import ExitStack
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 import typer
 
 from .collection_io import open_collection
+from .diff import (
+    GitError,
+    compute_diff,
+    materialize_revision,
+    render_json,
+    render_markdown,
+    render_terminal,
+    resolve_ref,
+)
 from .export.exporter import export as run_export
 from .importer.apply_filtered import apply_filtered as run_apply_filtered
 from .importer.importer import CardOverrideError, import_ as run_import
+from .importer.loader import load as load_repo
 from .importer.verify import verify as run_verify
 from .profile import resolve_profile_paths
 
@@ -171,6 +183,103 @@ def apply_filtered_cmd(
         )
     if report.conflicts:
         raise typer.Exit(code=2)
+
+
+class DiffFormat(str, Enum):
+    terminal = "terminal"
+    markdown = "markdown"
+    json = "json"
+
+
+@app.command("diff")
+def diff_cmd(
+    rev_a: Optional[str] = typer.Argument(
+        None, help="Git revision A (commit/branch/tag). Defaults to HEAD."
+    ),
+    rev_b: Optional[str] = typer.Argument(
+        None,
+        help="Git revision B. If omitted, the working tree is used (lets you see what export changed).",
+    ),
+    repo: Path = typer.Option(
+        Path("."),
+        "--repo",
+        help="Path to the gitified directory (defaults to the current dir).",
+    ),
+    format: DiffFormat = typer.Option(
+        DiffFormat.terminal,
+        "--format",
+        "-f",
+        case_sensitive=False,
+        help="Output format.",
+    ),
+) -> None:
+    """Semantic diff of two revisions of a gitified deck.
+
+    With no args, compares HEAD against the working tree (so you can see what
+    a fresh re-export changed). One arg compares that ref against the working
+    tree; two args compare the two refs.
+
+    Notes are correlated by GUID so tag/deck/field edits are reported per
+    note, not as opaque CSV row rewrites.
+    """
+    repo = repo.resolve()
+    if not repo.is_dir():
+        typer.secho(f"{repo} is not a directory", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    if rev_a is None:
+        rev_a = "HEAD"
+
+    try:
+        with ExitStack() as stack:
+            try:
+                resolve_ref(repo, rev_a)
+            except GitError as exc:
+                typer.secho(str(exc), fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1) from None
+            a_path = stack.enter_context(materialize_revision(repo, rev_a))
+
+            if rev_b is None:
+                b_path = repo
+            else:
+                try:
+                    resolve_ref(repo, rev_b)
+                except GitError as exc:
+                    typer.secho(str(exc), fg=typer.colors.RED, err=True)
+                    raise typer.Exit(code=1) from None
+                b_path = stack.enter_context(materialize_revision(repo, rev_b))
+
+            try:
+                a_repo = load_repo(a_path)
+            except FileNotFoundError as exc:
+                typer.secho(
+                    f"Could not load gitified dir at {rev_a}: {exc}",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(code=1) from None
+            try:
+                b_repo = load_repo(b_path)
+            except FileNotFoundError as exc:
+                where = rev_b if rev_b else "working tree"
+                typer.secho(
+                    f"Could not load gitified dir at {where}: {exc}",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                raise typer.Exit(code=1) from None
+
+            diff = compute_diff(a_repo, b_repo)
+    except GitError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from None
+
+    if format is DiffFormat.terminal:
+        render_terminal(diff)
+    elif format is DiffFormat.markdown:
+        sys.stdout.write(render_markdown(diff))
+    else:
+        sys.stdout.write(render_json(diff) + "\n")
 
 
 @app.command("verify")

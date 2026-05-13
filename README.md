@@ -40,12 +40,31 @@ anki-gitify import /path/to/japanese-gitified japanese.apkg
 # Validate a gitified directory (no Anki needed)
 anki-gitify verify /path/to/japanese-gitified
 
+# Semantic diff of two revisions of the gitified deck
+anki-gitify diff                                  # HEAD vs working tree
+anki-gitify diff main feature                     # any two refs
+anki-gitify diff --repo /path/to/gitified --format markdown   # report for a PR
+
 # Apply filtered-deck definitions to your live collection (v2)
 anki-gitify apply-filtered /path/to/japanese-gitified
 anki-gitify apply-filtered /path/to/japanese-gitified --dry-run
 ```
 
 The user's Anki must be **closed** when running `export` or `apply-filtered` (the collection.anki2 file is locked otherwise).
+
+## Semantic diff
+
+`anki-gitify diff` correlates notes between two revisions of a gitified deck by GUID and prints a per-entity report instead of a raw CSV diff:
+
+- which notes had tags added/removed
+- which cards moved between decks
+- which note fields changed (with an inline text diff)
+- which notetype templates/CSS were edited
+- which filtered decks, deck paths, or media files appeared/disappeared
+
+Default: compares `HEAD` against the working tree (useful right after re-exporting from Anki). With one ref it compares that ref against the working tree; with two refs it compares the two refs directly. `--format markdown` produces a shareable report; `--format json` emits the same structure for scripting.
+
+The gitified directory can live at the repo root or in a subdirectory of a larger repo — point `--repo` at it.
 
 ## Filtered decks
 

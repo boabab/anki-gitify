@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "tool_version": "<NORMALIZED>",
+  "generated_at": "<NORMALIZED>",
+  "source": {
+    "repo_path": "<NORMALIZED>",
+    "root_deck": "Top"
+  },
+  "rev_a": {
+    "kind": "ref",
+    "ref": "HEAD",
+    "sha": "<NORMALIZED>",
+    "commit_timestamp": "<NORMALIZED>",
+    "commit_subject": "<NORMALIZED>"
+  },
+  "rev_b": {
+    "kind": "working_tree"
+  },
+  "summary": {
+    "notes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 1
+    },
+    "notetypes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "filtered_decks": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "decks": {
+      "added": 0,
+      "removed": 0
+    },
+    "media": {
+      "added": 0,
+      "removed": 0
+    }
+  },
+  "warnings": [],
+  "notes": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      {
+        "before": {
+          "guid": "NOTE_B",
+          "label": "front b  /  back b",
+          "deck_path": "Top::Sub",
+          "notetype_name": "Bidirectional",
+          "notetype_slug": "bidirectional",
+          "tags": [
+            "beta",
+            "gamma"
+          ],
+          "fields": [
+            {
+              "name": "Front",
+              "value": "front b"
+            },
+            {
+              "name": "Back",
+              "value": "back b"
+            }
+          ],
+          "card_overrides": []
+        },
+        "after": {
+          "guid": "NOTE_B",
+          "label": "front b  /  back b",
+          "deck_path": "Top::Sub",
+          "notetype_name": "Bidirectional",
+          "notetype_slug": "bidirectional",
+          "tags": [
+            "beta"
+          ],
+          "fields": [
+            {
+              "name": "Front",
+              "value": "front b"
+            },
+            {
+              "name": "Back",
+              "value": "back b"
+            }
+          ],
+          "card_overrides": []
+        },
+        "changes": {
+          "tags_added": [],
+          "tags_removed": [
+            "gamma"
+          ],
+          "deck_moved": null,
+          "notetype_changed": null,
+          "fields_changed": [],
+          "card_overrides_changed": []
+        }
+      }
+    ]
+  },
+  "notetypes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "filtered_decks": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "deck_tree": {
+    "added": [],
+    "removed": []
+  },
+  "media": {
+    "added": [],
+    "removed": []
+  }
+}

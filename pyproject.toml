@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anki-gitify"
-version = "0.2.0"
+version = "0.3.0"
 description = "Convert an Anki deck to a git-versionable directory of plain text, and back to .apkg."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -28,3 +28,6 @@ anki-gitify = "anki_gitify.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/anki_gitify"]
+
+[tool.pytest.ini_options]
+pythonpath = ["tests"]

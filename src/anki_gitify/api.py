@@ -16,6 +16,7 @@ Stability rules in short:
 
 from __future__ import annotations
 
+from .diff import DIFF_SCHEMA_VERSION, DiffEnvelope, RevInput, run_diff
 from .importer.apply_filtered import ApplyFilteredReport, apply_filtered
 from .importer.importer import CardOverrideError, ImportReport, import_
 from .importer.loader import LoadedRepo, load
@@ -28,7 +29,7 @@ from .profile import (
 )
 
 
-API_VERSION = (1, 0, 0)
+API_VERSION = (1, 1, 0)
 
 __all__ = [
     "API_VERSION",
@@ -45,4 +46,8 @@ __all__ = [
     "resolve_profile_paths",
     "default_anki_base",
     "ProfilePaths",
+    "run_diff",
+    "RevInput",
+    "DiffEnvelope",
+    "DIFF_SCHEMA_VERSION",
 ]

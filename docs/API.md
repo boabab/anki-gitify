@@ -20,6 +20,8 @@ from anki_gitify.api import (
     load, LoadedRepo,
     # locate the user's Anki install
     list_profiles, resolve_profile_paths, default_anki_base, ProfilePaths,
+    # semantic diff between two states of a gitified deck
+    run_diff, RevInput, DiffEnvelope, DIFF_SCHEMA_VERSION,
 )
 ```
 
@@ -65,7 +67,32 @@ resolve_profile_paths(profile: str | None = None,
                       collection_override: Path | None = None) -> ProfilePaths
 
 default_anki_base() -> Path
+
+run_diff(rev_a: RevInput, rev_b: RevInput,
+         *, repo_path: Path | None = None,
+         cwd: Path | None = None,
+         output_format: Literal["json", "text"] = "text",
+         color: bool = False, abbrev: bool = False,
+         compact: bool = False) -> tuple[DiffEnvelope, str]
 ```
+
+### Diff envelope
+
+`DiffEnvelope` is a pydantic model. The canonical contract is its JSON
+serialization, not the Python attributes: serialize with `.model_dump(mode="json")`
+and consume the result as a dict. `DIFF_SCHEMA_VERSION` is the version
+integer embedded in that JSON (currently `1`). See
+[docs/DESIGN.md](DESIGN.md) §"Semantic diff" for the JSON schema.
+
+`RevInput` selects what to diff:
+
+```python
+RevInput.working_tree()        # the current state on disk
+RevInput.from_ref("HEAD")      # any git ref or sha
+RevInput.from_ref("v0.2.0")
+```
+
+Typical call: `run_diff(RevInput.from_ref("HEAD"), RevInput.working_tree(), repo_path=Path("/path/to/gitified"))`.
 
 ### Returned dataclasses
 

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "tool_version": "<NORMALIZED>",
+  "generated_at": "<NORMALIZED>",
+  "source": {
+    "repo_path": "<NORMALIZED>",
+    "root_deck": "Top"
+  },
+  "rev_a": {
+    "kind": "ref",
+    "ref": "HEAD",
+    "sha": "<NORMALIZED>",
+    "commit_timestamp": "<NORMALIZED>",
+    "commit_subject": "<NORMALIZED>"
+  },
+  "rev_b": {
+    "kind": "working_tree"
+  },
+  "summary": {
+    "notes": {
+      "added": 0,
+      "removed": 1,
+      "changed": 0
+    },
+    "notetypes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "filtered_decks": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "decks": {
+      "added": 0,
+      "removed": 0
+    },
+    "media": {
+      "added": 0,
+      "removed": 0
+    }
+  },
+  "warnings": [],
+  "notes": {
+    "added": [],
+    "removed": [
+      {
+        "guid": "NOTE_C",
+        "label": "front c  /  back c",
+        "deck_path": "Top::Other",
+        "notetype_name": "Bidirectional",
+        "notetype_slug": "bidirectional",
+        "tags": [],
+        "fields": [
+          {
+            "name": "Front",
+            "value": "front c"
+          },
+          {
+            "name": "Back",
+            "value": "back c"
+          }
+        ],
+        "card_overrides": []
+      }
+    ],
+    "changed": []
+  },
+  "notetypes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "filtered_decks": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "deck_tree": {
+    "added": [],
+    "removed": []
+  },
+  "media": {
+    "added": [],
+    "removed": []
+  }
+}

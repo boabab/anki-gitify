@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "tool_version": "<NORMALIZED>",
+  "generated_at": "<NORMALIZED>",
+  "source": {
+    "repo_path": "<NORMALIZED>",
+    "root_deck": "Top"
+  },
+  "rev_a": {
+    "kind": "ref",
+    "ref": "HEAD",
+    "sha": "<NORMALIZED>",
+    "commit_timestamp": "<NORMALIZED>",
+    "commit_subject": "<NORMALIZED>"
+  },
+  "rev_b": {
+    "kind": "working_tree"
+  },
+  "summary": {
+    "notes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "notetypes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 1
+    },
+    "filtered_decks": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "decks": {
+      "added": 0,
+      "removed": 0
+    },
+    "media": {
+      "added": 0,
+      "removed": 0
+    }
+  },
+  "warnings": [],
+  "notes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "notetypes": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      {
+        "before": {
+          "name": "Bidirectional",
+          "slug": "bidirectional",
+          "kind": "normal",
+          "sort_field_index": 0,
+          "fields": [
+            {
+              "name": "Front",
+              "font": "Arial",
+              "size": 20,
+              "sticky": false,
+              "rtl": false,
+              "plain_text": false,
+              "description": ""
+            },
+            {
+              "name": "Back",
+              "font": "Arial",
+              "size": 20,
+              "sticky": false,
+              "rtl": false,
+              "plain_text": false,
+              "description": ""
+            }
+          ],
+          "templates": [
+            {
+              "name": "Card 1",
+              "qfmt": "{{Front}}\n",
+              "afmt": "{{FrontSide}}<hr>{{Back}}\n",
+              "bqfmt": "",
+              "bafmt": ""
+            }
+          ],
+          "css": ".card { font-family: arial; }\n",
+          "latex_pre": "",
+          "latex_post": ""
+        },
+        "after": {
+          "name": "Bidirectional",
+          "slug": "bidirectional",
+          "kind": "normal",
+          "sort_field_index": 0,
+          "fields": [
+            {
+              "name": "Front",
+              "font": "Arial",
+              "size": 20,
+              "sticky": false,
+              "rtl": false,
+              "plain_text": false,
+              "description": ""
+            },
+            {
+              "name": "Back",
+              "font": "Arial",
+              "size": 20,
+              "sticky": false,
+              "rtl": false,
+              "plain_text": false,
+              "description": ""
+            }
+          ],
+          "templates": [
+            {
+              "name": "Card 1",
+              "qfmt": "{{Front}}\n",
+              "afmt": "{{FrontSide}}<hr>{{Back}}\n",
+              "bqfmt": "",
+              "bafmt": ""
+            }
+          ],
+          "css": ".card { font-family: serif; color: blue; }\n",
+          "latex_pre": "",
+          "latex_post": ""
+        },
+        "changes": {
+          "sort_field_index_changed": null,
+          "fields_changed": [],
+          "field_order_changed": null,
+          "templates_changed": [],
+          "css_changed": {
+            "before": ".card { font-family: arial; }\n",
+            "after": ".card { font-family: serif; color: blue; }\n",
+            "unified_diff": "--- \n+++ \n@@ -1 +1 @@\n-.card { font-family: arial; }\n+.card { font-family: serif; color: blue; }\n"
+          },
+          "latex_pre_changed": null,
+          "latex_post_changed": null
+        }
+      }
+    ]
+  },
+  "filtered_decks": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "deck_tree": {
+    "added": [],
+    "removed": []
+  },
+  "media": {
+    "added": [],
+    "removed": []
+  }
+}

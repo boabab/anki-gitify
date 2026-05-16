@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
 
-from . import textconv as textconv_mod
 from .collection_io import open_collection
+from .diff import RevInput, run_diff
+from .diff.git_revs import GitError
 from .export.exporter import export as run_export
 from .importer.apply_filtered import apply_filtered as run_apply_filtered
 from .importer.importer import CardOverrideError, import_ as run_import
@@ -199,164 +198,123 @@ def verify_cmd(
     )
 
 
-@app.command("textconv")
-def textconv_cmd(
-    path: Path = typer.Argument(..., help="File path (git passes a temp file here)"),
+@app.command("diff")
+def diff_cmd(
+    rev_a: Optional[str] = typer.Argument(
+        None,
+        help="Git ref to use for rev_a (default: HEAD if rev_b omitted, otherwise working tree)",
+    ),
+    rev_b: Optional[str] = typer.Argument(
+        None,
+        help="Git ref to use for rev_b (default: working tree)",
+    ),
+    format: str = typer.Option(
+        "text",
+        "--format",
+        help="Output format: 'json' (UI contract) or 'text' (terminal)",
+        case_sensitive=False,
+    ),
+    exit_code: bool = typer.Option(
+        False,
+        "--exit-code",
+        help="Exit 1 if any semantic change detected (mirrors git diff --exit-code)",
+    ),
+    abbrev: bool = typer.Option(
+        False,
+        "--abbrev",
+        help="Abbreviate very long template / CSS / field content in text output",
+    ),
+    color: str = typer.Option(
+        "auto",
+        "--color",
+        help="When to colorize text output: 'always', 'auto', 'never'",
+        case_sensitive=False,
+    ),
+    repo: Optional[Path] = typer.Option(
+        None,
+        "--repo",
+        help="Override the gitified-repo location (default: walk up from CWD)",
+    ),
+    compact: bool = typer.Option(
+        False,
+        "--compact",
+        help="Emit compact JSON instead of pretty-printed (no effect on text format)",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Write to file instead of stdout",
+    ),
 ) -> None:
-    """Print a humanized rendering of a gitified file to stdout (git diff driver).
+    """Compute a semantic diff between two states of a gitified deck.
 
-    Wired up by `anki-gitify install-diff-driver` so `git diff` shows
-    notes/*.csv as one block per note instead of one giant row per line.
-    Files we don't know how to humanize are passed through verbatim.
+    Positional arguments select revs (refs or omitted for working tree):
+      anki-gitify diff                 # HEAD vs working tree
+      anki-gitify diff <ref>           # <ref> vs working tree
+      anki-gitify diff <ref> <ref>     # any two refs
     """
-    try:
-        rendered = textconv_mod.humanize_path(path)
-    except FileNotFoundError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
-    sys.stdout.write(rendered)
+    fmt = format.lower()
+    if fmt not in {"json", "text"}:
+        typer.secho(f"--format must be 'json' or 'text' (got {format!r})", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
 
-
-_GITATTR_MARKER_BEGIN = "# >>> anki-gitify diff driver >>>"
-_GITATTR_MARKER_END = "# <<< anki-gitify diff driver <<<"
-_GITATTR_BODY = "\n".join(
-    [
-        _GITATTR_MARKER_BEGIN,
-        "notes/*.csv diff=anki-gitify",
-        "cards.csv diff=anki-gitify",
-        _GITATTR_MARKER_END,
-    ]
-)
-
-
-def _resolve_anki_gitify_exe() -> str:
-    found = shutil.which("anki-gitify")
-    if found:
-        return found
-    # Fall back to the sibling of the active Python interpreter; covers the
-    # case where the venv isn't on PATH but its `bin/` has the entry point.
-    candidate = Path(sys.executable).parent / "anki-gitify"
-    if candidate.is_file():
-        return str(candidate)
-    typer.secho(
-        "Could not find `anki-gitify` on PATH or next to the active Python "
-        f"({sys.executable}). Install the package in this Python before "
-        "running install-diff-driver.",
-        fg=typer.colors.RED,
-        err=True,
-    )
-    raise typer.Exit(code=1)
-
-
-def _git_toplevel(path: Path) -> Path:
-    try:
-        proc = subprocess.run(
-            ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            check=True,
-        )
-    except FileNotFoundError:
-        typer.secho("git executable not found on PATH", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1) from None
-    except subprocess.CalledProcessError:
+    color_when = color.lower()
+    if color_when not in {"always", "auto", "never"}:
         typer.secho(
-            f"{path} is not inside a git work tree (run `git init` first).",
+            f"--color must be 'always', 'auto', or 'never' (got {color!r})",
             fg=typer.colors.RED,
             err=True,
         )
-        raise typer.Exit(code=1) from None
-    return Path(proc.stdout.decode("utf-8").strip())
-
-
-@app.command("install-diff-driver")
-def install_diff_driver_cmd(
-    repo: Path = typer.Argument(
-        Path("."),
-        help="Path to the gitified directory (defaults to current dir)",
-    ),
-    uninstall: bool = typer.Option(False, "--uninstall", help="Remove the driver instead"),
-) -> None:
-    """Wire up `git diff` to render gitified files in a humanized form.
-
-    Writes/updates `<repo>/.gitattributes` and runs `git config` in the
-    enclosing repo so `notes/*.csv` and `cards.csv` are routed through
-    `anki-gitify textconv` for diffing. Idempotent.
-    """
-    repo = repo.resolve()
-    if not repo.is_dir():
-        typer.secho(f"{repo} is not a directory", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
-    toplevel = _git_toplevel(repo)
-    gitattr = repo / ".gitattributes"
 
-    existing = gitattr.read_text(encoding="utf-8") if gitattr.is_file() else ""
-    has_block = _GITATTR_MARKER_BEGIN in existing
-
-    if uninstall:
-        if has_block:
-            new_text = _strip_block(existing)
-            gitattr.write_text(new_text, encoding="utf-8")
-            typer.secho(f"Removed driver block from {gitattr}", fg=typer.colors.YELLOW)
-        else:
-            typer.echo(f"No driver block in {gitattr}; nothing to remove.")
-        subprocess.run(
-            ["git", "-C", str(toplevel), "config", "--unset", "diff.anki-gitify.textconv"],
-            capture_output=True,
-            check=False,
-        )
-        typer.secho("Unset diff.anki-gitify.textconv in repo config.", fg=typer.colors.YELLOW)
-        return
-
-    exe = _resolve_anki_gitify_exe()
-
-    if has_block:
-        typer.echo(f"{gitattr} already contains the driver block (left as-is).")
+    # Resolve positional args to two RevInput values.
+    if rev_a is None and rev_b is None:
+        a_input = RevInput.from_ref("HEAD")
+        b_input = RevInput.working_tree()
+    elif rev_b is None:
+        a_input = RevInput.from_ref(rev_a)
+        b_input = RevInput.working_tree()
     else:
-        suffix = "" if existing.endswith("\n") or existing == "" else "\n"
-        gitattr.write_text(existing + suffix + _GITATTR_BODY + "\n", encoding="utf-8")
-        typer.secho(f"Wrote driver block to {gitattr}", fg=typer.colors.GREEN)
+        a_input = RevInput.from_ref(rev_a)
+        b_input = RevInput.from_ref(rev_b)
 
-    subprocess.run(
-        ["git", "-C", str(toplevel), "config", "diff.anki-gitify.textconv", f"{exe} textconv"],
-        check=True,
-    )
-    subprocess.run(
-        ["git", "-C", str(toplevel), "config", "diff.anki-gitify.cachetextconv", "true"],
-        check=True,
-    )
-    typer.secho(
-        f"Configured diff.anki-gitify.textconv = {exe} textconv (in {toplevel}/.git/config)",
-        fg=typer.colors.GREEN,
-    )
-    typer.echo("")
-    typer.echo("Try it out:")
-    typer.secho("  git diff", fg=typer.colors.CYAN)
-    typer.echo(
-        "Note: GitHub's PR view doesn't run textconv drivers, so this only "
-        "improves your local `git diff` / `git log -p` / IDE diff. For a "
-        "structured branch summary, use a custom tool."
-    )
+    use_color = _resolve_color(color_when, output)
+
+    try:
+        envelope, rendered = run_diff(
+            a_input,
+            b_input,
+            repo_path=repo,
+            output_format=fmt,  # type: ignore[arg-type]
+            color=use_color,
+            abbrev=abbrev,
+            compact=compact,
+        )
+    except FileNotFoundError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from None
+    except GitError as exc:
+        typer.secho(f"git error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from None
+
+    if output is not None:
+        output.write_text(rendered, encoding="utf-8", newline="\n")
+    else:
+        sys.stdout.write(rendered)
+
+    if exit_code and not envelope.is_empty():
+        raise typer.Exit(code=1)
 
 
-def _strip_block(text: str) -> str:
-    out_lines: list[str] = []
-    skipping = False
-    for line in text.splitlines():
-        if line.strip() == _GITATTR_MARKER_BEGIN:
-            skipping = True
-            continue
-        if line.strip() == _GITATTR_MARKER_END:
-            skipping = False
-            continue
-        if not skipping:
-            out_lines.append(line)
-    cleaned = "\n".join(out_lines)
-    # collapse the trailing blank line(s) the block left behind
-    while cleaned.endswith("\n\n"):
-        cleaned = cleaned[:-1]
-    if cleaned and not cleaned.endswith("\n"):
-        cleaned += "\n"
-    return cleaned
+def _resolve_color(when: str, output: Optional[Path]) -> bool:
+    if when == "always":
+        return True
+    if when == "never":
+        return False
+    # auto: color only if writing to a TTY
+    if output is not None:
+        return False
+    return sys.stdout.isatty()
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -43,38 +43,23 @@ anki-gitify verify /path/to/japanese-gitified
 # Apply filtered-deck definitions to your live collection (v2)
 anki-gitify apply-filtered /path/to/japanese-gitified
 anki-gitify apply-filtered /path/to/japanese-gitified --dry-run
+
+# Semantic diff between two states of a gitified deck
+anki-gitify diff                       # HEAD vs working tree
+anki-gitify diff main feature-branch   # any two refs
+anki-gitify diff --format json         # structured JSON for UIs
 ```
 
 The user's Anki must be **closed** when running `export` or `apply-filtered` (the collection.anki2 file is locked otherwise).
 
-## Humanized git diffs
+## Semantic diff
 
-The exported `notes/<notetype>.csv` is one wide row per note, so even small Anki edits (a renamed tag, a moved card, a tweaked field) show up in raw `git diff` as opaque single-line CSV rewrites. Wire up a textconv driver to render those files as one block per note instead:
+`anki-gitify diff` compares two states of a gitified deck at the deck-semantic layer — tags, fields, templates, CSS, filtered-deck searches, deck tree, media — not at the level of bytes in CSV/YAML/HTML files. Two use cases:
 
-```bash
-cd /path/to/your-gitified-deck
-anki-gitify install-diff-driver
-```
+1. **Pre-push audit**: `anki-gitify diff` (no args) compares `HEAD` against your working tree, so you can verify what you're about to push matches what you actually changed in Anki.
+2. **History browsing**: `anki-gitify diff <ref-a> <ref-b>` compares any two refs, producing structured output a UI can render as a PR-style "what changed" view.
 
-This is idempotent: it appends a marker block to `.gitattributes` and runs `git config diff.anki-gitify.textconv "<path>/anki-gitify textconv"` in the enclosing repo. After it, plain `git diff`, `git log -p`, `git show`, and IDE diff views render notes/cards CSVs like:
-
-```
-== note abc123 ==
-deck: Japanese::Vocab::Kanji
-tags:
-  - kanji
-  - n5
-
--- field: Front --
-日
-
--- field: Back --
-sun, day
-```
-
-So tagging a note shows up as one inserted `  - <tag>` line, moving a card is a single `deck:` edit, and a field rewrite is a normal multi-line text diff scoped to that field. Other files are untouched.
-
-`anki-gitify install-diff-driver --uninstall` removes both the `.gitattributes` block and the git-config entry. **Note**: GitHub's web PR view doesn't run textconv drivers; this only improves your local tooling.
+JSON output (`--format json`) is the stable contract for UIs. Pretty terminal output (default) is for inspection. See [docs/DESIGN.md](docs/DESIGN.md) §"Semantic diff" for the contract.
 
 ## Filtered decks
 

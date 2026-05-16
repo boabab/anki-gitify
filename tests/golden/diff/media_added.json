@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "tool_version": "<NORMALIZED>",
+  "generated_at": "<NORMALIZED>",
+  "source": {
+    "repo_path": "<NORMALIZED>",
+    "root_deck": "Top"
+  },
+  "rev_a": {
+    "kind": "ref",
+    "ref": "HEAD",
+    "sha": "<NORMALIZED>",
+    "commit_timestamp": "<NORMALIZED>",
+    "commit_subject": "<NORMALIZED>"
+  },
+  "rev_b": {
+    "kind": "working_tree"
+  },
+  "summary": {
+    "notes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "notetypes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "filtered_decks": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "decks": {
+      "added": 0,
+      "removed": 0
+    },
+    "media": {
+      "added": 1,
+      "removed": 0
+    }
+  },
+  "warnings": [],
+  "notes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "notetypes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "filtered_decks": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "deck_tree": {
+    "added": [],
+    "removed": []
+  },
+  "media": {
+    "added": [
+      {
+        "filename": "sun.png",
+        "size": 15,
+        "content_hash": "sha256:21c9bd04d9b802a38d758dc5f0c2e4382eaa9d32415d5de8e7382b060507b932"
+      }
+    ],
+    "removed": []
+  }
+}

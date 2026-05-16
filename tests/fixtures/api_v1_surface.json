@@ -1,6 +1,6 @@
 {
   "_comment": "Snapshot of the anki_gitify.api surface as of API_VERSION. test_api_surface.py reads this and asserts that every documented name and dataclass field is still present. ADDING new names or fields is fine and does not require updating this file. REMOVING anything (or renaming) is a breaking change: update this file AND bump API_VERSION's major component in api.py at the same commit.",
-  "api_version": [1, 0, 0],
+  "api_version": [1, 1, 0],
   "names": [
     "API_VERSION",
     "import_",
@@ -15,7 +15,11 @@
     "list_profiles",
     "resolve_profile_paths",
     "default_anki_base",
-    "ProfilePaths"
+    "ProfilePaths",
+    "run_diff",
+    "RevInput",
+    "DiffEnvelope",
+    "DIFF_SCHEMA_VERSION"
   ],
   "dataclass_fields": {
     "ImportReport": [

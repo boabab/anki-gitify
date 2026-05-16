@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "tool_version": "<NORMALIZED>",
+  "generated_at": "<NORMALIZED>",
+  "source": {
+    "repo_path": "<NORMALIZED>",
+    "root_deck": "Top"
+  },
+  "rev_a": {
+    "kind": "ref",
+    "ref": "HEAD",
+    "sha": "<NORMALIZED>",
+    "commit_timestamp": "<NORMALIZED>",
+    "commit_subject": "<NORMALIZED>"
+  },
+  "rev_b": {
+    "kind": "working_tree"
+  },
+  "summary": {
+    "notes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "notetypes": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "filtered_decks": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "decks": {
+      "added": 1,
+      "removed": 0
+    },
+    "media": {
+      "added": 0,
+      "removed": 0
+    }
+  },
+  "warnings": [],
+  "notes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "notetypes": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "filtered_decks": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "deck_tree": {
+    "added": [
+      "Top::Sub::Leaf"
+    ],
+    "removed": []
+  },
+  "media": {
+    "added": [],
+    "removed": []
+  }
+}
